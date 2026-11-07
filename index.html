@@ -378,12 +378,19 @@ async function pub(html,m){
   if(!gh||!tk){dl(html);m(gh?"No GitHub token entered, so index.html was downloaded. Upload it to GitHub, or add a token above to publish directly.":"Downloaded index.html – upload it to your hosting to publish.");return}
   const api="https://api.github.com/repos/"+gh[1]+"/"+repo+"/contents/index.html",H={Authorization:"Bearer "+tk,"X-GitHub-Api-Version":"2022-11-28"};
   m("Publishing to GitHub…");
-  const g=await fetch(api,{headers:{...H,Accept:"application/vnd.github.sha"}});
-  if(!g.ok){m("GitHub refused the request ("+g.status+"). Check the token allows Contents: Read and write for this repository.");return}
-  const sha=(await g.text()).trim();
   const b64=await new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result.split(",")[1]);f.readAsDataURL(new Blob([html],{type:"text/html"}))});
-  const r=await fetch(api,{method:"PUT",headers:{...H,Accept:"application/vnd.github+json","Content-Type":"application/json"},body:JSON.stringify({message:"Update calendar content",content:b64,sha,branch:"main"})});
-  if(!r.ok){m("GitHub error "+r.status+". Check the token permissions.");return}
+  let r;
+  try{
+    for(let i=0;i<3;i++){
+      const g=await fetch(api+"?ref=main&_="+Date.now(),{headers:{...H,Accept:"application/vnd.github+json"},cache:"no-store"});
+      if(!g.ok){let t="";try{t=(await g.json()).message}catch(e){}m("GitHub refused the request ("+g.status+")"+(t?": "+t:"")+". Check the token allows Contents: Read and write for this repository.");return}
+      const sha=(await g.json()).sha;
+      r=await fetch(api,{method:"PUT",headers:{...H,Accept:"application/vnd.github+json","Content-Type":"application/json"},body:JSON.stringify({message:"Update calendar content",content:b64,sha,branch:"main"})});
+      if(r.status!==409)break;
+      m("Retrying…");await new Promise(z=>setTimeout(z,1500));
+    }
+  }catch(e){m("Network error: "+e.message);return}
+  if(!r.ok){let t="";try{t=(await r.json()).message}catch(e){}m("GitHub error "+r.status+(t?": "+t:"")+".");return}
   m("Published! Your live site updates in 1–2 minutes – then refresh the page.")}
 function adminUI(){
   const opts=D.days.map((d,i)=>'<option value="'+i+'">'+(i+1)+' · '+lab(i)+(d.t?' – '+esc(d.t):'')+'</option>').join("");
