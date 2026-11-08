@@ -213,7 +213,7 @@ function bar(){
   if(BR[bi]){BR[bi].forEach(([n,x])=>{const d=x*E8,f=hz(n);tone(t,f,d*2.4,.13,"sine");tone(t,f*2,d*1.3,.04,"sine");t+=d});CH[BAR[bi]].forEach(n=>tone(t0,hz(n),6*E8*1.05,.05,"triangle"))}
   bi=(bi+1)%(BR.length+1);tm=setTimeout(bar,6*E8*1000)}
 function mstart(){
-  if(D.music){if(!au){au=new Audio(D.music);au.loop=true;au.volume=.6}au.play().catch(()=>{});playing=true;mute=false;$("#mus").textContent="Music: On";return}
+  if(D.music){if(!au){au=new Audio(D.music);au.loop=true;au.volume=.6}const p=au.play();playing=true;mute=false;$("#mus").textContent="Music: On";if(p&&p.catch)p.catch(()=>{playing=false;$("#mus").textContent="Music: Off"});return}
   const a=A();mb=a.createGain();mb.gain.value=.8;mb.connect(a.destination);
   const dl=a.createDelay(1),fb=a.createGain(),lp=a.createBiquadFilter();
   dl.delayTime.value=.45;fb.gain.value=.35;lp.frequency.value=2200;
@@ -222,7 +222,8 @@ function mstart(){
 function mstop(){if(au)au.pause();playing=false;mute=true;clearTimeout(tm);if(mb){mb.disconnect();mb=null}$("#mus").textContent="Music: Off"}
 $("#mus").onclick=()=>playing?mstop():mstart();
 $("#fx").onclick=()=>{fxOn=!fxOn;$("#fx").textContent="Effects: "+(fxOn?"On":"Off")};
-document.addEventListener("pointerdown",e=>{if(!mute&&!playing&&!e.target.closest("#mus"))try{mstart()}catch(x){}},{once:true});
+if(D.music){try{mstart()}catch(x){}}
+(function(){const ev=["click","touchend","keydown","pointerup"];const go=e=>{if(e.target&&e.target.closest&&e.target.closest("#mus"))return;ev.forEach(x=>document.removeEventListener(x,go,true));if(!mute&&!playing)try{mstart()}catch(x){}};ev.forEach(x=>document.addEventListener(x,go,true))})();
 
 let S3=null,sm="idle",emo=0,dir=1,side=1,raf=0,hid=0;
 const EM=[["wave","Ho ho ho! 🎅"],["cheer","Merry Christmas! 🎄"],["nod","Open a door today! 🎁"],["wave","Joy to the world ⭐"],["cheer","God bless you all ❤️"]];
