@@ -224,6 +224,7 @@ $("#mus").onclick=()=>playing?mstop():mstart();
 $("#fx").onclick=()=>{fxOn=!fxOn;$("#fx").textContent="Effects: "+(fxOn?"On":"Off")};
 if(D.music){try{mstart()}catch(x){}}
 (function(){const ev=["click","touchend","keydown","pointerup"];const go=e=>{if(e.target&&e.target.closest&&e.target.closest("#mus"))return;ev.forEach(x=>document.removeEventListener(x,go,true));if(!mute&&!playing)try{mstart()}catch(x){}};ev.forEach(x=>document.addEventListener(x,go,true))})();
+if(D.music)setTimeout(()=>{if(playing||mute)return;const b=document.createElement("button");b.textContent="🎵 Tap to play Christmas music";b.style.cssText="position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:45;padding:11px 20px;border-radius:99px;border:1px solid #e3be58;background:rgba(20,14,8,.92);color:#fff;font:600 .85rem system-ui,sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.5);animation:glow 2s infinite";b.onclick=()=>{if(!playing)try{mstart()}catch(x){}b.remove()};document.body.appendChild(b);const iv=setInterval(()=>{if(playing||mute||!b.isConnected){clearInterval(iv);b.remove()}},400)},1500);
 
 let S3=null,sm="idle",emo=0,dir=1,side=1,raf=0,hid=0;
 const EM=[["wave","Ho ho ho! 🎅"],["cheer","Merry Christmas! 🎄"],["nod","Open a door today! 🎁"],["wave","Joy to the world ⭐"],["cheer","God bless you all ❤️"]];
